@@ -440,6 +440,34 @@ def linear_solver_helper(world, state, goals, current_plan, depth = 0):
 
         possible_actions = sorted(get_possible_grounds(world, goal), key=lambda c: initial_state_distance(state, c.pre))
 
+
+        clear_disk = None
+        top_disk = None
+        # If the goal's current predicate is to clear, then we need to reorder the possible actions
+        if goal.predicate == "Clear":
+            # print(dir(goal))
+            clear_disk = goal.literals[0]
+            print(clear_disk)
+            for state_desc in state:
+                if state_desc.predicate == "On":
+                    if state_desc.literals[1] == clear_disk:
+                        top_disk = state_desc.literals[0]
+                        print(top_disk)
+            new_actions = []
+            for single_action in possible_actions:
+                if single_action.literals[0] == top_disk:
+                    new_actions.append(single_action)
+            for single_action in possible_actions:
+                if single_action.literals[0] != top_disk:
+                    new_actions.append(single_action)
+            possible_actions = new_actions
+
+
+
+        # for action in get_possible_grounds(world, goal):
+            # viewer.display_text("\n"+padding+goal.simple_str()+'Heuristic = '+str(initial_state_distance(state, goal.pre)))
+
+
         # otherwise, we need to find a subgoal that will get us to the goal
         # find all the grounded actions which will satisfy the goal
         if debug:
@@ -595,6 +623,7 @@ def contains_contradiction(state, action):
 
 def initial_state_distance(state, preconds):
     count = 0
+    # Make this one level deeper?
     for p in preconds:
         if not satisfied(state, p):
             count += 1
